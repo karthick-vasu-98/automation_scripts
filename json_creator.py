@@ -1,7 +1,7 @@
-
 import os
-import re
 import json
+import string
+import random
 
 
 def is_valid_json_key(key_name):
@@ -66,14 +66,93 @@ def get_json_obj_key():
     return key_obj_list
 
 
-def create_json(len_json, key_obj):
-    json_obj = {}
+def generate_string_data():
+    length = random.randint(1, 20)
+    characters = string.ascii_letters + string.digits
+    string_data = ''.join(random.choice(characters) for _ in range(length))
+    return string_data
+
+
+def generate_int_data():
+    int_data = random.randint(1, 20)
+    return int_data
+
+def generate_list_data():
+    type_list = ['int', 'str']
+    list_data = list()
+    length = random.randint(1, 50)
+    list_type = random.choice(type_list)
+    for _ in range(length):
+        if list_type == 'str':
+            list_data.append(generate_string_data())
+        else:
+            list_data.append(generate_int_data())
+    return list_data
+
+
+def generate_dict_data(dict_obj=None):
+    dict_data = generate_json_obj(dict_obj)
+    return dict_data
+
+
+def generate_bool_data():
+    bool_data = random.choice([True, False])
+    return bool_data
+
+
+def generate_json_obj(key_obj):
+    data = dict()
     try:
-        pass
-        #NOTE: TODO
+        for key in key_obj:
+            generated_data = None
+            if key['key_type'] == 'str':
+                generated_data = generate_string_data()
+            if key['key_type'] == 'int':
+                generated_data = generate_int_data()
+            if key['key_type'] == 'list':
+                generated_data = generate_list_data()
+            if key['key_type'] == 'dict':
+                generated_data = generate_dict_data(dict_obj=key['j_key_obj'])
+            if key['key_type'] == 'boolean':
+                generated_data = generate_bool_data()
+            data[key['key_name']] = generated_data
+    except Exception as e:
+        print('Error :', e)
+    return data
+
+
+def create_json(len_json, key_obj):
+    json_obj = list()
+    try:
+        for i in range(0, len_json):
+            json_obj.append(generate_json_obj(key_obj))
     except Exception as e:
         print('Error :', e)
     return json_obj
+
+
+def create_unique_file_path(path='.'):
+    counter = 0
+    while True:
+        file_name = f"data_{counter}.json"
+        file_path = os.path.join(path, file_name)
+        if not os.path.exists(file_path):
+            return file_path
+        counter += 1
+
+
+def create_json_file(json_obj, path):
+    result = False
+    msg = 'Error occured while writing file'
+    try:
+        file_path = create_unique_file_path(path=path)
+        with open(file_path, 'w') as json_file:
+            json.dump(json_obj, json_file)
+            result = True
+            msg = f'File created at {file_path}'
+    except Exception as e:
+        print('Error :', e)
+    return result, msg
 
 
 if __name__ == "__main__":
@@ -81,3 +160,5 @@ if __name__ == "__main__":
     len_json = int(input('Enter the number of json objects should present in the json : '))
     key_obj = get_json_obj_key()
     json_obj = create_json(len_json, key_obj)
+    result, msg = create_json_file(json_obj, current_directory)
+    print(msg)
