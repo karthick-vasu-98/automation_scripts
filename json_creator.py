@@ -77,6 +77,7 @@ def generate_int_data():
     int_data = random.randint(1, 20)
     return int_data
 
+
 def generate_list_data():
     type_list = ['int', 'str']
     list_data = list()
